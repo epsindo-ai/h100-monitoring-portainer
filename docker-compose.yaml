@@ -65,5 +65,6 @@ services:
 
 volumes:
   portainer_data:
+  grafana_data:
 networks:
   monitoring:
