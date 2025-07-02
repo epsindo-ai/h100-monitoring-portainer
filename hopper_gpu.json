@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 2,
+  "id": 1,
   "links": [],
   "panels": [
     {
@@ -968,6 +968,8 @@
     },
     {
       "datasource": {
+        "default": false,
+        "type": "prometheus",
         "uid": "$datasource"
       },
       "fieldConfig": {
@@ -1002,7 +1004,7 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "decgbytes"
         },
         "overrides": []
       },
@@ -1024,7 +1026,7 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "/^{instance=\"node-exporter:9100\", job=\"cluster\", module=\"node-exporter\"}$/",
+          "fields": "",
           "values": false
         },
         "showPercentChange": false,
@@ -1037,11 +1039,13 @@
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "((node_memory_MemTotal_bytes{instance=\"node-exporter:9100\"} - node_memory_MemFree_bytes{instance=\"node-exporter:9100\"}  - node_memory_Buffers_bytes{instance=\"node-exporter:9100\"} - node_memory_Cached_bytes{instance=\"node-exporter:9100\"}) / node_memory_MemTotal_bytes{instance=\"node-exporter:9100\"}) * 100",
+          "editorMode": "code",
+          "expr": "# Used Memory dalam GB\r\n(node_memory_MemTotal_bytes{instance=\"node-exporter:9100\"} - node_memory_MemFree_bytes{instance=\"node-exporter:9100\"} - node_memory_Buffers_bytes{instance=\"node-exporter:9100\"} - node_memory_Cached_bytes{instance=\"node-exporter:9100\"}) / (1024^3)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
-          "legendFormat": "",
+          "legendFormat": "__auto",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -1233,8 +1237,11 @@
     },
     {
       "datasource": {
+        "default": false,
+        "type": "prometheus",
         "uid": "$datasource"
       },
+      "description": "Mengukur kecepatan upload (data yang dikirim keluar) dari server dalam bits per second.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1330,12 +1337,14 @@
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "sum(rate(node_network_transmit_bytes_total{instance=\"node-exporter:9100\",device=~\"en.*\"}[$__interval]))",
+          "editorMode": "code",
+          "expr": "sum(rate(node_network_transmit_bytes_total{instance=\"node-exporter:9100\",device=~\"eth.*|en.*\"}[5m])) * 8",
           "format": "time_series",
           "hide": false,
           "interval": ".5m",
           "intervalFactor": 2,
           "legendFormat": "Transmit",
+          "range": true,
           "refId": "B"
         },
         {
@@ -1352,7 +1361,7 @@
           "refId": "A"
         }
       ],
-      "title": "Ethernet Throughput",
+      "title": "Network Transmit Throughput (Upload/Outbound Traffic)",
       "type": "timeseries"
     },
     {
@@ -1509,7 +1518,7 @@
             "mode": "thresholds"
           },
           "mappings": [],
-          "max": 140,
+          "max": 140000,
           "min": 0,
           "thresholds": {
             "mode": "absolute",
@@ -1520,11 +1529,11 @@
               },
               {
                 "color": "red",
-                "value": 80
+                "value": 100000
               }
             ]
           },
-          "unit": "decgbytes"
+          "unit": "decmbytes"
         },
         "overrides": []
       },
@@ -1557,7 +1566,7 @@
             "uid": "$datasource"
           },
           "editorMode": "code",
-          "expr": "DCGM_FI_DEV_MEM_COPY_UTIL{instance=\"dcgm-exporter:9400\"}",
+          "expr": "# Used memory per GPU\r\nDCGM_FI_DEV_FB_USED{instance=\"dcgm-exporter:9400\"}",
           "format": "time_series",
           "hide": false,
           "interval": "",
@@ -1573,95 +1582,15 @@
     },
     {
       "datasource": {
+        "default": false,
+        "type": "prometheus",
         "uid": "$datasource"
       },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [
-            {
-              "options": {
-                "match": "null",
-                "result": {
-                  "text": "N/A"
-                }
-              },
-              "type": "special"
-            }
-          ],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#299c46",
-                "value": null
-              },
-              {
-                "color": "rgba(237, 129, 40, 0.89)",
-                "value": 70
-              },
-              {
-                "color": "#d44a3a",
-                "value": 90
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 3,
-        "x": 14,
-        "y": 16
-      },
-      "id": 40,
-      "maxDataPoints": 100,
-      "options": {
-        "colorMode": "none",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.2.0",
-      "targets": [
-        {
-          "datasource": {
-            "uid": "$datasource"
-          },
-          "expr": "avg(DCGM_FI_DEV_MEM_COPY_UTIL{instance=\"dcgm-exporter:9400\"})",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "GPU Avg. Mem. Cpy Utilization",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "uid": "$datasource"
-      },
+      "description": "Mengukur kecepatan upload (data yang dikirim keluar) dari server dalam bits per second.",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "continuous-RdYlGr"
           },
           "custom": {
             "axisBorderShow": false,
@@ -1681,7 +1610,7 @@
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
@@ -1733,7 +1662,7 @@
         "x": 17,
         "y": 16
       },
-      "id": 41,
+      "id": 61,
       "options": {
         "legend": {
           "calcs": [
@@ -1753,33 +1682,37 @@
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "sum(rate(node_infiniband_port_data_transmitted_bytes_total{instance=\"node-exporter:9100\"}[$__interval]))",
+          "editorMode": "code",
+          "expr": "sum(rate(node_network_receive_bytes_total{instance=\"node-exporter:9100\",device=~\"eth.*|en.*\"}[5m])) * 8",
           "format": "time_series",
           "hide": false,
-          "interval": "",
+          "interval": ".5m",
           "intervalFactor": 2,
           "legendFormat": "Transmit",
+          "range": true,
           "refId": "B"
         },
         {
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "sum(rate(node_infiniband_port_data_received_bytes_total{instance=\"node-exporter:9100\"}[$__interval]))",
+          "expr": "sum(rate(node_network_receive_bytes_total{instance=\"node-exporter:9100\",device=~\"en.*\"}[$__interval]))",
           "format": "time_series",
           "hide": false,
           "instant": false,
-          "interval": "",
+          "interval": ".5m",
           "intervalFactor": 2,
           "legendFormat": "Receive",
           "refId": "A"
         }
       ],
-      "title": "Infiniband Throughput",
+      "title": "Network Transmit Throughput (Download/Inbound Traffic))",
       "type": "timeseries"
     },
     {
       "datasource": {
+        "default": false,
+        "type": "prometheus",
         "uid": "$datasource"
       },
       "fieldConfig": {
@@ -1830,7 +1763,7 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "/^nodename$/",
+          "fields": "/^device$/",
           "values": false
         },
         "showPercentChange": false,
@@ -1843,13 +1776,15 @@
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "node_uname_info{instance=\"node-exporter:9100\"}",
+          "editorMode": "code",
+          "expr": "node_network_info{instance=\"node-exporter:9100\"}",
           "format": "table",
           "intervalFactor": 1,
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "Hostname",
+      "title": "Network Interface",
       "type": "stat"
     },
     {
@@ -2031,86 +1966,6 @@
       },
       "fieldConfig": {
         "defaults": {
-          "mappings": [
-            {
-              "options": {
-                "match": "null",
-                "result": {
-                  "text": "N/A"
-                }
-              },
-              "type": "special"
-            }
-          ],
-          "max": 3200,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#299c46",
-                "value": null
-              },
-              {
-                "color": "rgba(237, 129, 40, 0.89)",
-                "value": 2600
-              },
-              {
-                "color": "#d44a3a",
-                "value": 3000
-              }
-            ]
-          },
-          "unit": "watt"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 3,
-        "x": 14,
-        "y": 21
-      },
-      "id": 54,
-      "maxDataPoints": 100,
-      "options": {
-        "colorMode": "none",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/^node_hwmon_power_average_watt{chip=\"lnxsybus:00_acpi000d:00\", instance=\"node-exporter:9100\", job=\"cluster\", module=\"node-exporter\", sensor=\"power1\"}$/",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.2.0",
-      "targets": [
-        {
-          "datasource": {
-            "uid": "$datasource"
-          },
-          "expr": "node_hwmon_power_average_watt{instance=\"node-exporter:9100\"}",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "refId": "A"
-        }
-      ],
-      "title": "System Total Power Draw",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "uid": "$datasource"
-      },
-      "fieldConfig": {
-        "defaults": {
           "color": {
             "mode": "palette-classic"
           },
@@ -2132,7 +1987,7 @@
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
-            "lineWidth": 2,
+            "lineWidth": 1,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
@@ -2161,66 +2016,18 @@
               }
             ]
           },
-          "unit": "watt"
+          "unit": "Bps"
         },
         "overrides": [
           {
             "matcher": {
               "id": "byName",
-              "options": "PSU1 Input"
+              "options": "Receive"
             },
             "properties": [
               {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#6ed0e0",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "PSU2 Input"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#eab839",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "PSU3 Input"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#ef843c",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "PSU4 Input"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#d683ce",
-                  "mode": "fixed"
-                }
+                "id": "custom.transform",
+                "value": "negative-Y"
               }
             ]
           }
@@ -2232,10 +2039,12 @@
         "x": 17,
         "y": 21
       },
-      "id": 52,
+      "id": 41,
       "options": {
         "legend": {
-          "calcs": [],
+          "calcs": [
+            "lastNotNull"
+          ],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -2250,14 +2059,29 @@
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "node_hwmon_power_average_watt{instance=\"node-exporter:9100\"}",
+          "expr": "sum(rate(node_infiniband_port_data_transmitted_bytes_total{instance=\"node-exporter:9100\"}[$__interval]))",
           "format": "time_series",
-          "intervalFactor": 1,
-          "legendFormat": "Total",
+          "hide": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Transmit",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "expr": "sum(rate(node_infiniband_port_data_received_bytes_total{instance=\"node-exporter:9100\"}[$__interval]))",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Receive",
           "refId": "A"
         }
       ],
-      "title": "System Power Draw",
+      "title": "Infiniband Throughput",
       "type": "timeseries"
     },
     {
@@ -2425,7 +2249,7 @@
         "current": {
           "selected": false,
           "text": "prometheus",
-          "value": "bepxmjg94inlsb"
+          "value": "eeq0zoe0p7l6of"
         },
         "hide": 0,
         "includeAll": false,
@@ -2497,6 +2321,6 @@
   "timezone": "browser",
   "title": "GPU Nodes",
   "uid": "syl6zhqkz",
-  "version": 4,
+  "version": 10,
   "weekStart": ""
 }
